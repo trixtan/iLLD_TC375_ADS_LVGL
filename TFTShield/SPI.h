@@ -1,5 +1,5 @@
 /**********************************************************************************************************************
- * \file SPI_DMA.h
+ * \file SPI_CPU.h
  * \copyright Copyright (C) Infineon Technologies AG 2019
  *
  * Use of this file is subject to the terms of use agreed between (i) you or the company in which ordinary course of
@@ -25,18 +25,23 @@
  * IN THE SOFTWARE.
  *********************************************************************************************************************/
 
-#ifndef SPI_DMA_H_
-#define SPI_DMA_H_
+#ifndef SPI_CPU_H_
+#define SPI_CPU_H_
 
 /*********************************************************************************************************************/
 /*-----------------------------------------------------Includes------------------------------------------------------*/
 /*********************************************************************************************************************/
-#include "Ifx_Types.h"
 #include "IfxQspi_SpiMaster.h"
 
 /*********************************************************************************************************************/
 /*------------------------------------------------------Macros-------------------------------------------------------*/
 /*********************************************************************************************************************/
+
+#define TFT_SCLK        &IfxQspi1_SCLK_P10_2_OUT
+#define TFT_MISO        &IfxQspi1_MRSTA_P10_1_IN
+#define TFT_MOSI        &IfxQspi1_MTSR_P10_3_OUT
+#define TFT_LCD_CS      &IfxQspi1_SLSO9_P10_5_OUT
+#define TFT_TOUCH_CS    &IfxQspi1_SLSO8_P10_4_OUT
 
 /*********************************************************************************************************************/
 /*-------------------------------------------------Data Structures---------------------------------------------------*/
@@ -44,14 +49,16 @@
 
 typedef struct
 {
-    IfxQspi_SpiMaster         spiMaster;                /* QSPI Master handle           */
-    IfxQspi_SpiMaster_Channel spiMasterChannel;         /* QSPI Master Channel handle   */
-} qspiDma;
+    IfxQspi_SpiMaster         spiMaster;                    /* QSPI Master handle            */
+    IfxQspi_SpiMaster_Channel tftSPIMasterChannel;          /* TFT QSPI Master Channel handle    */
+    IfxQspi_SpiMaster_Channel touchSPIMasterChannel;        /* Touch QSPI Master Channel handle    */
+} qspiComm;
 
 /*********************************************************************************************************************/
 /*------------------------------------------------Function Prototypes------------------------------------------------*/
 /*********************************************************************************************************************/
 void initQSPI(void);
-void transferData(void);
+void transferDataToTFT(const void *dataBuffer, Ifx_SizeT count);
 
-#endif /* SPI_DMA_H_ */
+
+#endif /* SPI_CPU_H_ */

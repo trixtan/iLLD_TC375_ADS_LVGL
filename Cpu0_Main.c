@@ -27,7 +27,7 @@
 #include "Ifx_Types.h"
 #include "IfxCpu.h"
 #include "IfxScuWdt.h"
-#include "lvgl.h"
+#include "lv_port_ILI9486L.h"
 
 IFX_ALIGN(4) IfxCpu_syncEvent g_cpuSyncEvent = 0;
 
@@ -45,8 +45,9 @@ void core0_main(void)
     IfxCpu_emitEvent(&g_cpuSyncEvent);
     IfxCpu_waitEvent(&g_cpuSyncEvent, 1);
     
-    /* Initialize lvgl */
-    lv_init();
+    lv_port_disp_init();
+    lv_port_disp_reset();
+    lv_port_disp_switch_off();
 
     while(1)
     {

@@ -6,9 +6,13 @@
 	</projects>
 	<buildSpec>
 		<buildCommand>
-			<name>com.infineon.aurix.buildsystem.builders.booster</name>
+			<name>org.eclipse.ui.externaltools.ExternalToolBuilder</name>
 			<triggers>full,incremental,</triggers>
 			<arguments>
+				<dictionary>
+					<key>LaunchConfigHandle</key>
+					<value>&lt;project&gt;/.externalToolBuilders/com.infineon.aurix.buildsystem.builders.booster.launch</value>
+				</dictionary>
 			</arguments>
 		</buildCommand>
 		<buildCommand>

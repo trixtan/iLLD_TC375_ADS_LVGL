@@ -7,7 +7,7 @@
 /* QSPI modules */
 #define QSPI1_MASTER                &MODULE_QSPI1   /* SPI Master module                                            */
 
-#define MASTER_CHANNEL_BAUDRATE     1000000         /* Master channel baud rate                                     */
+#define MASTER_CHANNEL_BAUDRATE     20000000        /* Master channel baud rate                                     */
 
 /* Interrupt Service Routine priorities for Master SPI communication */
 #define ISR_PRIORITY_MASTER_TX      50
@@ -106,7 +106,7 @@ static void initQSPI1MasterChannel(
     /* Select the port pin for the Chip Select signal */
     const IfxQspi_SpiMaster_Output qspi1SlaveSelect = {                 /* QSPI1 Master selects the QSPI1 Slave     */
         chipSelectPin, IfxPort_OutputMode_pushPull,                     /* Slave Select port pin (CS)               */
-        IfxPort_PadDriver_cmosAutomotiveSpeed1                          /* Pad driver mode                          */
+        IfxPort_PadDriver_cmosAutomotiveSpeed3                          /* Pad driver mode                          */
     };
     spiMasterChannelConfig.sls.output = qspi1SlaveSelect;
 
@@ -124,10 +124,10 @@ void initQSPI(void)
             &g_qspi.tftSPIMasterChannel,
             TFT_LCD_CS);
     //Init Touch Channel
-    initQSPI1MasterChannel(
-            &g_qspi.spiMaster,
-            &g_qspi.touchSPIMasterChannel,
-            TFT_TOUCH_CS);
+//    initQSPI1MasterChannel(
+//            &g_qspi.spiMaster,
+//            &g_qspi.touchSPIMasterChannel,
+//            TFT_TOUCH_CS);
 }
 
 /* This function starts the data transfer */
@@ -142,4 +142,7 @@ void transferDataToTFT(const void *dataBuffer, Ifx_SizeT count)
             dataBuffer,
             NULL_PTR,
             count);
+
+    while(IfxQspi_SpiMaster_getStatus(&g_qspi.tftSPIMasterChannel) == SpiIf_Status_busy)
+        {   /* Wait until the previous communication has finished, if any */ }
 }

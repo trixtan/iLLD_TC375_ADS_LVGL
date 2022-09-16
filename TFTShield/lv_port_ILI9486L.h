@@ -112,7 +112,7 @@ extern "C" {
 /*---------------------------------TFT Display Pin Mapping-----------------------------------------------------------*/
 /*********************************************************************************************************************/
 /* TFT PIN Mappings */
-#define TFT_LCD_BL      &MODULE_P02,6
+#define TFT_LCD_BL      &MODULE_P02,7
 #define TFT_LCD_RST     &MODULE_P02,6
 #define TFT_LCD_DC      &MODULE_P02,4
 

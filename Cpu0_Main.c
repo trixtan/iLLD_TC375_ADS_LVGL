@@ -28,6 +28,9 @@
 #include "IfxCpu.h"
 #include "IfxScuWdt.h"
 #include "lv_port_ILI9486L.h"
+#include "lv_demos.h"
+#include "Bsp.h"
+#include "IfxStm.h"
 
 IFX_ALIGN(4) IfxCpu_syncEvent g_cpuSyncEvent = 0;
 
@@ -46,11 +49,12 @@ void core0_main(void)
     IfxCpu_waitEvent(&g_cpuSyncEvent, 1);
     
     lv_port_disp_init();
-    lv_port_disp_reset();
-    lv_port_disp_switch_off();
 
+    lv_demo_widgets();
     while(1)
     {
+        lv_task_handler();
+        waitTime(IfxStm_getTicksFromMilliseconds(&MODULE_STM0, 5));
     }
 }
 

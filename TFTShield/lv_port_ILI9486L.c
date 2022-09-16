@@ -17,6 +17,7 @@
 #include "Bsp.h"
 #include "IfxStm.h"
 #include "SPI.h"
+#include "STM_Interrupt.h"
 #include "lvgl.h"
 
 /*********************
@@ -36,7 +37,7 @@ static void disp_flush (lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color
 //static void gpu_fill(lv_disp_drv_t * disp_drv, lv_color_t * dest_buf, lv_coord_t dest_width,
 //        const lv_area_t * fill_area, lv_color_t color);
 
-static void startupTFT ();
+static void startupTFT(void);
 IFX_INLINE void sendCommandToTFT (uint8 command, const uint16 *dataBuffer, Ifx_SizeT count);
 static void setWindow(uint32 x1, uint32 y1, uint32 x2, uint32 y2);
 
@@ -68,6 +69,7 @@ void lv_port_disp_init (void)
      * Initialize your display
      * -----------------------*/
     disp_init();
+    lv_init();
 
     /*-----------------------------
      * Create a buffer for drawing
@@ -97,8 +99,8 @@ void lv_port_disp_init (void)
     /* Example for 1) */
 
     static lv_disp_draw_buf_t draw_buf_dsc_1;
-    static lv_color_t buf_1[MY_DISP_HOR_RES * 10]; /*A buffer for 10 rows*/
-    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * 10); /*Initialize the display buffer*/
+    static lv_color_t buf_1[MY_DISP_HOR_RES * 32]; /*A buffer for 32 rows*/
+    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * 32); /*Initialize the display buffer*/
 
     /* Example for 2) */
 //    static lv_disp_draw_buf_t draw_buf_dsc_2;
@@ -130,13 +132,15 @@ void lv_port_disp_init (void)
     disp_drv.draw_buf = &draw_buf_dsc_1;
 
     /*Required for Example 3)*/
-    //disp_drv.full_refresh = 1
+//    disp_drv.full_refresh = 1;
     /* Fill a memory array with a color if you have GPU.
      * Note that, in lv_conf.h you can enable GPUs that has built-in support in LVGL.
      * But if you have a different GPU you can use with this callback.*/
     //disp_drv.gpu_fill_cb = gpu_fill;
     /*Finally register the driver*/
     lv_disp_drv_register(&disp_drv);
+
+    initSTM();
 }
 
 /**********************
@@ -161,10 +165,10 @@ static void disp_init (void)
     /* Set the LCD data/command selection to output push-pull mode */
     IfxPort_setPinModeOutput(TFT_LCD_DC, IfxPort_OutputMode_pushPull, IfxPort_OutputIdx_general);
 
-    startupTFT();
-
     /* enable interrupts again */
     IfxCpu_restoreInterrupts(interruptState);
+
+    startupTFT();
 
     IfxPort_setPinHigh(TFT_LCD_BL);
 }
@@ -178,13 +182,42 @@ static void disp_flush (lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color
     {
         uint32 pixelsCount = ((area->x2 + 1) - area->x1) * ((area->y2 + 1) - area->y1);
         setWindow(area->x1, area->y1, area->x2, area->y2);
-        //tft_flush_row_buff(numberOfPixel, color_p);
+        sendCommandToTFT(TFT_CMD_MEMORY_WRITE, color_p, pixelsCount);
     }
 
     /*IMPORTANT!!!
      *Inform the graphics library that you are ready with the flushing*/
     lv_disp_flush_ready(disp_drv);
 }
+
+//void tft_flush_row_buff( uint32 numberOfPixel, const void * buff)
+//{
+//    uint16 tx_data;
+//
+//    if (tft_status == 0)
+//    {
+//        // calculate the command and address value
+//        if (tft_id == 0x9486){
+////          tx_data = (0x1 << 8) | 0x2C; // register 0x2C on ILI9486
+//            tx_data =  0x2C; // register 0x2C on ILI9486
+//        }
+//        // wait until Spi is no longer busy (should not busy here)
+//        while (IfxQspi_SpiMaster_getStatus(&g_Qspi_Tft.drivers.spiMasterChannel) == SpiIf_Status_busy) {};
+//        // send the address to the display
+//
+//        IfxPort_setPinLow(LCD_DC);  //Command
+//        IfxQspi_SpiMaster_exchange(&g_Qspi_Tft.drivers.spiMasterChannel, &tx_data, 0, 1);
+//    }
+//
+//    tft_status = 1; // TFT Busy
+//
+//    /* wait until Spi is no longer busy (should not busy here) */
+//    while (IfxQspi_SpiMaster_getStatus(&g_Qspi_Tft.drivers.spiMasterChannel) == SpiIf_Status_busy) {};
+//    /* send the values to the display */
+//    IfxPort_setPinHigh(LCD_DC);  //Data
+//    IfxQspi_SpiMaster_exchange(&g_Qspi_Tft.drivers.spiMasterChannel, buff, 0, (sint16)(numberOfPixel));
+//    tft_terminate_endless_transfer();
+//}
 
 void lv_port_disp_switch_off(void)
 {
